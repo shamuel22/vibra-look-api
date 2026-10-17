@@ -73,6 +73,17 @@ describe('compileLook — exhaustive', () => {
     expect(rejected).toBeGreaterThan(100);
   });
 
+  it('gives every distinct recipe a distinct id (render cache key)', () => {
+    const ids = new Map<string, string>();
+    for (const r of allVariations()) {
+      const key = `${r.variant}|${ZONES.map((z) => `${r[z].shadeId}:${r[z].finish}:${r[z].intensity}`).join('|')}`;
+      const seen = ids.get(r.id);
+      expect(seen === undefined || seen === key).toBe(true);
+      ids.set(r.id, key);
+    }
+    expect(ids.size).toBeGreaterThan(900);
+  });
+
   it('is deterministic', () => {
     for (const look of SAMPLE_LOOKS) expect(compileLook(structuredClone(look), NO_CTX)).toEqual(compileLook(look, NO_CTX));
   });
@@ -163,6 +174,9 @@ describe('compileLook — rejections (nothing reaches YouCam)', () => {
     const r = withZone(BASE, 'cheeks', { ...BASE.cheeks, enabled: false, disabledReason: 'notInKit' });
     expect(kinds(r, { constraints: [], kit })).toEqual([]);
     expect(problems(BASE, { constraints: [], kit })).toEqual([{ kind: 'notInKit', zone: 'cheeks', shadeId: 'cheek-soft-mauve' }]);
+    // The person owns the gloss lipstick, not a satin one in that shade.
+    const satinLip = withZone(r, 'lips', { ...r.lips, finish: 'satin' });
+    expect(problems(satinLip, { constraints: [], kit })).toEqual([{ kind: 'notInKit', zone: 'lips', shadeId: 'lip-mauve' }]);
   });
 });
 

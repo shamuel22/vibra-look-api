@@ -72,7 +72,8 @@ export function zoneViolations(
     out.push({ kind: 'finishBlocked', zone, finish: z.finish, constraint: 'noShine' });
   const max = maxIntensity(zone, constraints);
   if (z.intensity > max) out.push({ kind: 'intensityTooHigh', zone, max, constraint: 'discreetLips' });
-  if (kit.status === 'declared' && !kit.items[zone].some((i) => i.shadeId === z.shadeId))
+  // A declared kit item is a shade in the finish the person owns: both must match.
+  if (kit.status === 'declared' && !kit.items[zone].some((i) => i.shadeId === z.shadeId && i.finish === z.finish))
     out.push({ kind: 'notInKit', zone, shadeId: z.shadeId });
   return out;
 }

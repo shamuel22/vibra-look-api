@@ -6,12 +6,23 @@ import { z } from 'zod';
 
 export const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
+  // Bind address: 127.0.0.1 behind a reverse proxy, so per-IP limits cannot be bypassed directly.
+  HOST: z.string().min(1).default('0.0.0.0'),
   YOUCAM_API_KEY: z.string().min(20, 'YOUCAM_API_KEY is required'),
   YOUCAM_BASE_URL: z.url().default('https://yce-api-01.makeupar.com'),
   SESSION_TTL_MINUTES: z.coerce.number().int().min(5).max(240).default(30),
   MAX_RENDERS_PER_SESSION: z.coerce.number().int().min(3).max(50).default(12),
+  // Concurrent sessions kept in memory (each holds only ids and provider URLs, never images).
+  MAX_SESSIONS: z.coerce.number().int().min(1).max(10_000).default(200),
+  // Global cap of YouCam tasks started per UTC day (protects the unit balance). Resets on restart.
+  DAILY_RENDER_LIMIT: z.coerce.number().int().min(1).default(300),
+  // Global cap of language-model calls per UTC day (translations + text rewrites, retries included).
+  DAILY_LLM_LIMIT: z.coerce.number().int().min(1).default(3000),
+  // Number of reverse proxies in front of the API (1 behind nginx), for client IPs in rate limits.
+  TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
   // Vibe translation (F2.3): DeepSeek through its Anthropic-compatible Messages endpoint.
-  DEEPSEEK_API_KEY: z.string().min(20).optional(),
+  // Empty means "not configured" (editorial recipes only), so the .env.example template starts as-is.
+  DEEPSEEK_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(20).optional()),
   DEEPSEEK_BASE_URL: z.url().default('https://api.deepseek.com/anthropic'),
   DEEPSEEK_MODEL: z.string().min(1).default('deepseek-flash'),
 });

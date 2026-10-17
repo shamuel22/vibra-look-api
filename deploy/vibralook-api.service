@@ -1,0 +1,30 @@
+# systemd unit for vibralook-api.
+#   sudo cp deploy/vibralook-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now vibralook-api
+#   journalctl -u vibralook-api -f
+# Adjust User, WorkingDirectory and the node path (`which node`) to your server.
+[Unit]
+Description=VIBRA LOOK API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vibralook
+WorkingDirectory=/opt/vibralook-api
+# Reads .env from WorkingDirectory (see .env.example). Keep it chmod 600.
+ExecStart=/usr/bin/node --env-file-if-exists=.env dist/main.js
+Environment=NODE_ENV=production
+Restart=on-failure
+RestartSec=3
+# Let the API delete in-flight YouCam tasks before exiting.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/vibralook-api
+
+[Install]
+WantedBy=multi-user.target

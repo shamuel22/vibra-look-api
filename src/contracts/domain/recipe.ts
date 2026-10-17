@@ -10,12 +10,22 @@ function zoneKey(z: ZoneRecipe): string {
   return z.enabled ? `${z.shadeId}:${z.finish}:${z.intensity}` : 'off';
 }
 
-/** Deterministic id from the render-relevant fields (cache key for the same selfie + recipe). */
+/**
+ * Deterministic id from the render-relevant fields (cache key for the same selfie + recipe).
+ * 53-bit cyrb53 hash: collisions between distinct recipes are practically impossible.
+ */
 export function recipeId(r: Pick<LookRecipe, Zone | 'variant'>): string {
   const raw = `${r.variant}|${ZONES.map((z) => zoneKey(r[z])).join('|')}`;
-  let h = 5381;
-  for (let i = 0; i < raw.length; i++) h = ((h << 5) + h + raw.charCodeAt(i)) | 0;
-  return `r${(h >>> 0).toString(36)}`;
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return `r${(4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36)}`;
 }
 
 export function sameZone(a: ZoneRecipe, b: ZoneRecipe): boolean {
