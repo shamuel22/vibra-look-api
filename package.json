@@ -1,7 +1,7 @@
 {
   "name": "vibralook-api",
   "version": "0.0.1",
-  "description": "VIBRA LOOK API \u2014 vibe translation, look compiler and YouCam makeup try-on orchestration",
+  "description": "VIBRA LOOK API — vibe translation, look compiler and YouCam makeup try-on orchestration",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -13,13 +13,15 @@
     "start:dev": "nest start --watch --exec \"node --env-file-if-exists=.env\"",
     "start:debug": "nest start --debug --watch",
     "lint": "oxlint --type-aware src/ test/",
-    "test": "vitest run",
+    "test": "node scripts/sync-contracts.mjs --check && vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "smoke:youcam": "node --env-file-if-exists=.env dist/cli/smoke-youcam.js"
+    "smoke:youcam": "node --env-file-if-exists=.env dist/cli/smoke-youcam.js",
+    "contracts:sync": "node scripts/sync-contracts.mjs",
+    "contracts:check": "node scripts/sync-contracts.mjs --check"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

@@ -10,6 +10,10 @@ export const envSchema = z.object({
   YOUCAM_BASE_URL: z.url().default('https://yce-api-01.makeupar.com'),
   SESSION_TTL_MINUTES: z.coerce.number().int().min(5).max(240).default(30),
   MAX_RENDERS_PER_SESSION: z.coerce.number().int().min(3).max(50).default(12),
+  // Vibe translation (F2.3): DeepSeek through its Anthropic-compatible Messages endpoint.
+  DEEPSEEK_API_KEY: z.string().min(20).optional(),
+  DEEPSEEK_BASE_URL: z.url().default('https://api.deepseek.com/anthropic'),
+  DEEPSEEK_MODEL: z.string().min(1).default('deepseek-flash'),
 });
 
 export type Env = z.infer<typeof envSchema>;

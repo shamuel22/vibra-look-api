@@ -1,6 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { compileLook } from '../looks/look.compiler.js';
+import { EMPTY_KIT, SAMPLE_LOOKS } from '../looks/look.fixtures.js';
 import { YoucamClient } from './youcam.client.js';
 import { classifyEngineError, classifyHttpError } from './youcam.errors.js';
 import { YoucamError } from './youcam.types.js';
@@ -69,8 +71,11 @@ describe('YoucamClient', () => {
   it('starts a task with src_file_id and version 1.0', async () => {
     const fetchMock = vi.fn().mockResolvedValue(respond(200, { status: 200, data: { task_id: 'T1' } }));
     vi.stubGlobal('fetch', fetchMock);
-    const id = await client().startMakeup('F1', [{ category: 'skin_smooth', skinSmoothStrength: 0, skinSmoothColorIntensity: 0 }]);
+    const { effects } = compileLook(SAMPLE_LOOKS[0], { constraints: [], kit: EMPTY_KIT });
+    const id = await client().startMakeup('F1', effects);
     expect(id).toBe('T1');
+    // @ts-expect-error hand-built effects are not accepted: only compiler output can spend units.
+    void client().startMakeup.bind(null, 'F1', [{ category: 'skin_smooth', skinSmoothStrength: 0, skinSmoothColorIntensity: 0 }]);
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ src_file_id: 'F1', version: '1.0' });
   });
 

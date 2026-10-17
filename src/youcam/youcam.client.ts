@@ -10,8 +10,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { Env } from '../config/env.js';
+import type { CompiledEffects } from '../looks/look.compiler.js';
 import { classifyEngineError, classifyHttpError } from './youcam.errors.js';
-import { YoucamError, type MakeupEffect, type TaskState } from './youcam.types.js';
+import { YoucamError, type TaskState } from './youcam.types.js';
 
 const CALL_TIMEOUT_MS = 15_000;
 const UPLOAD_TIMEOUT_MS = 30_000;
@@ -51,8 +52,11 @@ export class YoucamClient {
     return { fileId: file.file_id };
   }
 
-  /** Start a makeup task on an uploaded file. Consumes 1 unit only if it succeeds. */
-  async startMakeup(fileId: string, effects: MakeupEffect[]): Promise<string> {
+  /**
+   * Start a makeup task on an uploaded file. Consumes 1 unit only if it succeeds.
+   * Takes only compiler output (`compileLook`), never hand-built effects.
+   */
+  async startMakeup(fileId: string, effects: CompiledEffects): Promise<string> {
     const body = await this.call<{ data: { task_id: string } }>('POST', '/s2s/v2.0/task/makeup-vto', {
       src_file_id: fileId,
       version: '1.0',
